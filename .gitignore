@@ -1,0 +1,27 @@
+# Dependency folders
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Env
+.env
+
+# Vite cache
+.vite/
+
+# System files
+.DS_Store
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS junk
+Thumbs.db
