@@ -21,14 +21,13 @@ const UploadData = () => {
     formData.append("file", selectedFile);
 
     try {
-      const response = await api.post("/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await api.post("/upload", formData);
       setMessage(`✅ ${response.data.message} | Baris: ${response.data.rows_inserted}`);
     } catch (error) {
       console.error("Upload gagal:", error);
       setMessage("❌ Upload gagal. Pastikan file CSV valid.");
     }
+
   };
 
   return (
