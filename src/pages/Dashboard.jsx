@@ -7,12 +7,19 @@ const Dashboard = () => {
   const [forecast, setForecast] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [horizon, setHorizon] = useState(1); // ✅ Tambahkan horizon
+  const [horizon, setHorizon] = useState(1);
 
   useEffect(() => {
     setLoading(true);
     setError("");
-    api.get(`/forecast?horizon=${horizon}`)  // ✅ Gunakan horizon dinamis
+
+    const token = localStorage.getItem("token"); // ✅ ambil token
+    api
+      .get(`/forecast?horizon=${horizon}`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ kirim header token
+        },
+      })
       .then((res) => {
         if (res.data && res.data.forecast) {
           setForecast(res.data.forecast);
@@ -25,15 +32,15 @@ const Dashboard = () => {
         setError("Gagal mengambil data dari server.");
       })
       .finally(() => setLoading(false));
-  }, [horizon]); // ✅ Fetch ulang jika horizon berubah
+  }, [horizon]);
 
   const handleExport = () => {
     if (forecast.length === 0) return;
     const csv = [
       ["Obat", "Bulan", "Jumlah Prediksi"],
-      ...forecast.map(row => [row.obat, row.bulan, row.jumlah])
+      ...forecast.map((row) => [row.obat, row.bulan, row.jumlah]),
     ]
-      .map(e => e.join(","))
+      .map((e) => e.join(","))
       .join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -51,7 +58,6 @@ const Dashboard = () => {
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Dashboard Prediksi Stok Obat</h1>
 
-        {/* ✅ Dropdown Pilihan Horizon */}
         <div className="mb-4">
           <label className="mr-2 font-medium">Prediksi untuk:</label>
           <select
