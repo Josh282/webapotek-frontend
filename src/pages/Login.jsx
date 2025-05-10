@@ -10,22 +10,19 @@ const Login = () => {
   const handleLogin = async () => {
     setError("");
     try {
-      const res = await fetch("http://localhost:8000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+      const res = await api.post("/auth/login", {
+        username,
+        password,
       });
   
-      if (!res.ok) throw new Error("Login gagal");
-  
-      const data = await res.json();
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("role", data.role); // ✅ simpan role
+      localStorage.setItem("token", res.data.access_token);
+      localStorage.setItem("role", res.data.role);
       navigate("/");
     } catch (err) {
       setError("Login gagal. Periksa username/password.");
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-300 flex items-center justify-center px-4">
