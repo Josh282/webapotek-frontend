@@ -10,25 +10,31 @@ const UploadData = () => {
     setSelectedFile(e.target.files[0]);
     setMessage("");
   };
-
   const handleUpload = async () => {
     if (!selectedFile) {
       setMessage("Pilih file CSV terlebih dahulu.");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("file", selectedFile);
-
+  
     try {
-      const response = await api.post("/upload", formData);
+      const token = localStorage.getItem("token"); // pastikan ada token
+      const response = await api.post("/upload/", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`, // ⬅ penting
+          // JANGAN SET 'Content-Type', biarkan browser set otomatis
+        },
+      });
+  
       setMessage(`✅ ${response.data.message} | Baris: ${response.data.rows_inserted}`);
     } catch (error) {
       console.error("Upload gagal:", error);
       setMessage("❌ Upload gagal. Pastikan file CSV valid.");
     }
-
   };
+
 
   return (
     <>
