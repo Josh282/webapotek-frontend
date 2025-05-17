@@ -1,60 +1,43 @@
 import React, { useState } from "react";
-import api from "../services/api";
 import Navbar from "../components/Navbar";
+import ManualEntryForm from "../components/ManualEntryForm";
+import FormUpload from "../components/FormUpload";
 
 const UploadData = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [message, setMessage] = useState("");
-
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
-    setMessage("");
-  };
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setMessage("Pilih file CSV terlebih dahulu.");
-      return;
-    }
-  
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-  
-    try {
-      const token = localStorage.getItem("token"); // pastikan ada token
-      const response = await api.post("/upload/", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`, // ⬅ penting
-          // JANGAN SET 'Content-Type', biarkan browser set otomatis
-        },
-      });
-  
-      setMessage(`✅ ${response.data.message} | Baris: ${response.data.rows_inserted}`);
-    } catch (error) {
-      console.error("Upload gagal:", error);
-      setMessage("❌ Upload gagal. Pastikan file CSV valid.");
-    }
-  };
-
+  const [tab, setTab] = useState("manual");
 
   return (
     <>
       <Navbar />
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Upload Data Pemakaian Obat (CSV)</h1>
-        <input
-          type="file"
-          accept=".csv"
-          onChange={handleFileChange}
-          className="mb-4"
-        />
-        <br />
-        <button
-          onClick={handleUpload}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Upload CSV
-        </button>
-        {message && <p className="mt-4 text-sm">{message}</p>}
+        <h1 className="text-2xl font-bold mb-6">Input Data Pemakaian Obat</h1>
+
+        {/* Tab Switcher */}
+        <div className="flex mb-6 space-x-4 border-b">
+          <button
+            onClick={() => setTab("manual")}
+            className={`px-4 py-2 ${
+              tab === "manual"
+                ? "border-b-2 border-blue-600 font-semibold"
+                : "text-gray-500"
+            }`}
+          >
+            Manual Entry
+          </button>
+          <button
+            onClick={() => setTab("upload")}
+            className={`px-4 py-2 ${
+              tab === "upload"
+                ? "border-b-2 border-blue-600 font-semibold"
+                : "text-gray-500"
+            }`}
+          >
+            Upload Excel
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {tab === "manual" ? <ManualEntryForm /> : <FormUpload />}
       </div>
     </>
   );
