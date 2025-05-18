@@ -1,114 +1,104 @@
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
-import ForecastChart from "../components/ForecastChart";
 
 const Dashboard = () => {
-  const [forecast, setForecast] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("pemakaian");
+
+  const [topUsed, setTopUsed] = useState([]);
+  const [forecast1, setForecast1] = useState([]);
+  const [forecast3, setForecast3] = useState([]);
+  const [forecast6, setForecast6] = useState([]);
   const [error, setError] = useState("");
-  const [horizon, setHorizon] = useState(1);
 
   useEffect(() => {
-    setLoading(true);
-    setError("");
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-    const token = localStorage.getItem("token"); // ✅ ambil token
-    api
-      .get(`/forecast?horizon=${horizon}`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // ✅ kirim header token
-        },
-      })
-      .then((res) => {
-        if (res.data && res.data.forecast) {
-          setForecast(res.data.forecast);
-        } else {
-          setError("Data tidak tersedia.");
-        }
-      })
-      .catch((err) => {
-        console.error("Gagal fetch forecast:", err);
-        setError("Gagal mengambil data dari server.");
-      })
-      .finally(() => setLoading(false));
-  }, [horizon]);
+        const [usedRes, f1, f3, f6] = await Promise.all([
+          api.get("/pemakaian/top15"),
+          api.get("/forecast/top15?horizon=1"),
+          api.get("/forecast/top15?horizon=3"),
+          api.get("/forecast/top15?horizon=6"),
+        ]);
 
-  const handleExport = () => {
-    if (forecast.length === 0) return;
-    const csv = [
-      ["Obat", "Bulan", "Jumlah Prediksi"],
-      ...forecast.map((row) => [row.obat, row.bulan, row.jumlah]),
-    ]
-      .map((e) => e.join(","))
-      .join("\n");
+        setTopUsed(usedRes.data);
+        setForecast1(f1.data.forecast_top15 || f1.data.forecast);
+        setForecast3(f3.data.forecast_top15 || f3.data.forecast);
+        setForecast6(f6.data.forecast_top15 || f6.data.forecast);
+      } catch (err) {
+        console.error(err);
+        setError("❌ Gagal mengambil data dari server.");
+      }
+    };
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "forecast_obat.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
+    fetchData();
+  }, []);
+
+  const renderTable = (title, data) => (
+    <div className="mb-8">
+      <h2 className="text-lg font-semibold mb-2">{title}</h2>
+      <table className="w-full border border-gray-300 text-sm">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="border px-4 py-2">Obat</th>
+            <th className="border px-4 py-2">Jumlah</th>
+            {data[0]?.bulan && <th className="border px-4 py-2">Bulan</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item, idx) => (
+            <tr key={idx} className="hover:bg-gray-50">
+              <td className="border px-4 py-2">{item.obat}</td>
+              <td className="border px-4 py-2">{item.jumlah}</td>
+              {item.bulan && <td className="border px-4 py-2">{item.bulan}</td>}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <>
       <Navbar />
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Dashboard Prediksi Stok Obat</h1>
+        <h1 className="text-2xl font-bold mb-6">Dashboard Prediksi Obat</h1>
 
-        <div className="mb-4">
-          <label className="mr-2 font-medium">Prediksi untuk:</label>
-          <select
-            value={horizon}
-            onChange={(e) => setHorizon(parseInt(e.target.value))}
-            className="border border-gray-300 rounded px-2 py-1"
+        {/* Tab Switcher */}
+        <div className="flex mb-6 space-x-4 border-b">
+          <button
+            onClick={() => setTab("pemakaian")}
+            className={`px-4 py-2 ${
+              tab === "pemakaian"
+                ? "border-b-2 border-blue-600 font-semibold"
+                : "text-gray-500"
+            }`}
           >
-            <option value={1}>1 bulan ke depan</option>
-            <option value={3}>3 bulan ke depan</option>
-            <option value={6}>6 bulan ke depan</option>
-          </select>
+            Top Pemakaian
+          </button>
+          <button
+            onClick={() => setTab("forecast")}
+            className={`px-4 py-2 ${
+              tab === "forecast"
+                ? "border-b-2 border-blue-600 font-semibold"
+                : "text-gray-500"
+            }`}
+          >
+            Top Forecast
+          </button>
         </div>
 
-        <button
-          onClick={handleExport}
-          className="mb-6 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Export CSV
-        </button>
+        {error && <p className="text-red-600">{error}</p>}
 
-        {loading && <p>Memuat data...</p>}
-
-        {!loading && error && (
-          <p className="text-red-600 text-center mt-6">{error}</p>
-        )}
-
-        {!loading && forecast.length === 0 && !error && (
-          <p className="text-center text-gray-500 mt-6">Belum ada data prediksi.</p>
-        )}
-
-        {!loading && forecast.length > 0 && (
+        {tab === "pemakaian" ? (
+          renderTable("🔁 15 Obat Paling Sering Dipakai", topUsed)
+        ) : (
           <>
-            <ForecastChart data={forecast} />
-            <table className="w-full border border-gray-300 mt-6">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border px-4 py-2">Obat</th>
-                  <th className="border px-4 py-2">Bulan</th>
-                  <th className="border px-4 py-2">Jumlah Prediksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {forecast.map((item, idx) => (
-                  <tr key={idx}>
-                    <td className="border px-4 py-2">{item.obat}</td>
-                    <td className="border px-4 py-2">{item.bulan}</td>
-                    <td className="border px-4 py-2">{item.jumlah}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {renderTable("📈 Forecast 1 Bulan", forecast1)}
+            {renderTable("📉 Forecast 3 Bulan", forecast3)}
+            {renderTable("📊 Forecast 6 Bulan", forecast6)}
           </>
         )}
       </div>
