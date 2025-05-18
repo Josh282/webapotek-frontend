@@ -74,8 +74,9 @@ const UploadData = () => {
 
             {/* Aggregate Form */}
             <div className="mt-10 border-t pt-6">
-              <h3 className="font-semibold mb-2">Agregasi Data Pemakaian</h3>
-              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <h3 className="font-semibold mb-4 text-center text-lg">Agregasi Data Pemakaian</h3>
+            
+              <div className="flex flex-col sm:flex-row justify-center gap-4 mb-4 max-w-3xl mx-auto">
                 <input
                   type="date"
                   value={startDate}
@@ -95,9 +96,12 @@ const UploadData = () => {
                   Aggregate
                 </button>
               </div>
-
-              {aggMessage && <p className="text-sm mt-2">{aggMessage}</p>}
+            
+              {aggMessage && (
+                <p className="text-sm text-center mt-2 text-gray-700">{aggMessage}</p>
+              )}
             </div>
+
           </>
         ) : (
           <ManualEntryForm />
