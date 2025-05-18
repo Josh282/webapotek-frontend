@@ -2,9 +2,40 @@ import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import ManualEntryForm from "../components/ManualEntryForm";
 import FormUpload from "../components/FormUpload";
+import api from "../services/api"; // ⬅️ untuk agregasi
 
 const UploadData = () => {
   const [tab, setTab] = useState("manual");
+
+  // State untuk agregasi
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [aggMessage, setAggMessage] = useState("");
+
+  const handleAggregate = async () => {
+    if (!startDate || !endDate) {
+      setAggMessage("❗Tentukan tanggal awal dan akhir terlebih dahulu.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await api.post("/pemakaian/aggregate", null, {
+        params: {
+          start_date: startDate,
+          end_date: endDate,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setAggMessage(`✅ ${res.data.message} | Baris: ${res.data.rows_inserted}`);
+    } catch (err) {
+      console.error(err);
+      setAggMessage("❌ Gagal menjalankan agregasi.");
+    }
+  };
 
   return (
     <>
@@ -37,7 +68,40 @@ const UploadData = () => {
         </div>
 
         {/* Tab Content */}
-        {tab === "manual" ? <ManualEntryForm /> : <FormUpload />}
+        {tab === "upload" ? (
+          <>
+            <FormUpload />
+
+            {/* Aggregate Form */}
+            <div className="mt-10 border-t pt-6">
+              <h3 className="font-semibold mb-2">Agregasi Data Pemakaian</h3>
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="border px-3 py-2 rounded w-full sm:w-1/3"
+                />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="border px-3 py-2 rounded w-full sm:w-1/3"
+                />
+                <button
+                  onClick={handleAggregate}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Aggregate
+                </button>
+              </div>
+
+              {aggMessage && <p className="text-sm mt-2">{aggMessage}</p>}
+            </div>
+          </>
+        ) : (
+          <ManualEntryForm />
+        )}
       </div>
     </>
   );
