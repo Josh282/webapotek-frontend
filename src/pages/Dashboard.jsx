@@ -1,35 +1,45 @@
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 const Dashboard = () => {
-  const [tab, setTab] = useState("pemakaian");
+  const [tab, setTab] = useState("utama");
   const [horizonTab, setHorizonTab] = useState(1);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [topUsed, setTopUsed] = useState([]);
   const [forecast1, setForecast1] = useState([]);
   const [forecast3, setForecast3] = useState([]);
   const [forecast6, setForecast6] = useState([]);
+  const [topPenyakit, setTopPenyakit] = useState([]);
   const [error, setError] = useState("");
-
-  // Pagination
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usedRes, f1, f3, f6] = await Promise.all([
+        const [usedRes, f1, f3, f6, penyakitRes] = await Promise.all([
           api.get("/pemakaian/top15"),
           api.get("/forecast/top15?horizon=1"),
           api.get("/forecast/top15?horizon=3"),
           api.get("/forecast/top15?horizon=6"),
+          api.get("/pemakaian/top5-penyakit"),
         ]);
 
         setTopUsed(usedRes.data);
         setForecast1(f1.data.forecast_top15 || f1.data.forecast);
         setForecast3(f3.data.forecast_top15 || f3.data.forecast);
         setForecast6(f6.data.forecast_top15 || f6.data.forecast);
+        setTopPenyakit(penyakitRes.data);
       } catch (err) {
         console.error(err);
         setError("❌ Gagal mengambil data dari server.");
@@ -69,7 +79,7 @@ const Dashboard = () => {
           <tbody>
             {paginated.map((item, idx) => (
               <tr key={idx} className="hover:bg-gray-50">
-                <td className="border px-4 py-2">{item.obat}</td>
+                <td className="border px-4 py-2">{item.obat || item.penyakit}</td>
                 <td className="border px-4 py-2">{item.jumlah}</td>
                 {item.bulan && <td className="border px-4 py-2">{item.bulan}</td>}
               </tr>
@@ -77,7 +87,6 @@ const Dashboard = () => {
           </tbody>
         </table>
 
-        {/* Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-4 space-x-2">
             {Array.from({ length: totalPages }).map((_, idx) => (
@@ -99,8 +108,23 @@ const Dashboard = () => {
     );
   };
 
+  const renderChart = (title, data, dataKey, labelKey) => (
+    <div className="mb-8">
+      <h2 className="text-lg font-semibold mb-2">{title}</h2>
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={labelKey} />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey={dataKey} fill="#3182ce" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+
   useEffect(() => {
-    setPage(1); // Reset pagination setiap horizon atau tab berubah
+    setPage(1);
   }, [horizonTab, tab]);
 
   return (
@@ -111,35 +135,45 @@ const Dashboard = () => {
 
         {/* Tab Switcher */}
         <div className="flex mb-6 space-x-4 border-b">
-          <button
-            onClick={() => setTab("pemakaian")}
-            className={`px-4 py-2 ${
-              tab === "pemakaian"
-                ? "border-b-2 border-blue-600 font-semibold"
-                : "text-gray-500"
-            }`}
-          >
-            Top Pemakaian
-          </button>
-          <button
-            onClick={() => setTab("forecast")}
-            className={`px-4 py-2 ${
-              tab === "forecast"
-                ? "border-b-2 border-blue-600 font-semibold"
-                : "text-gray-500"
-            }`}
-          >
-            Top Forecast
-          </button>
+          {["utama", "pemakaian", "forecast"].map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2 ${
+                tab === t
+                  ? "border-b-2 border-blue-600 font-semibold"
+                  : "text-gray-500"
+              }`}
+            >
+              {t === "utama"
+                ? "Utama"
+                : t === "pemakaian"
+                ? "Top Pemakaian"
+                : "Forecast"}
+            </button>
+          ))}
         </div>
 
         {error && <p className="text-red-600">{error}</p>}
 
-        {tab === "pemakaian" ? (
-          renderTable("🔁 15 Obat Paling Sering Dipakai", topUsed)
-        ) : (
+        {tab === "utama" && (
           <>
-            {/* Sub-tab Horizon */}
+            {renderChart(
+              "📊 5 Penyakit Terbanyak Bulan Ini",
+              topPenyakit,
+              "jumlah",
+              "penyakit"
+            )}
+            {renderChart("📈 Top 15 Forecast", forecast1, "jumlah", "obat")}
+            {renderTable("📋 Top 15 Pemakaian Obat", topUsed)}
+          </>
+        )}
+
+        {tab === "pemakaian" &&
+          renderTable("📋 Semua Data Pemakaian", topUsed)}
+
+        {tab === "forecast" && (
+          <>
             <div className="flex mb-4 space-x-4">
               {[1, 3, 6].map((bulan) => (
                 <button
