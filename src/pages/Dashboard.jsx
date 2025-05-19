@@ -68,53 +68,91 @@ const Dashboard = () => {
   const renderTable = (title, data) => {
     const paginated = paginate(data);
     const totalPages = Math.ceil(data.length / itemsPerPage);
-
+  
+    const getPaginationItems = () => {
+      const maxButtons = 5;
+      const pages = [];
+  
+      if (totalPages <= maxButtons) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        if (page <= 3) {
+          pages.push(1, 2, 3, "...", totalPages);
+        } else if (page >= totalPages - 2) {
+          pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
+        } else {
+          pages.push(1, "...", page, "...", totalPages);
+        }
+      }
+  
+      return pages;
+    };
+  
     return (
-      <div className="mb-8">
+      <div className="mb-8 max-w-6xl mx-auto">
         <h2 className="text-lg font-semibold mb-2">{title}</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-300 text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-4 py-2">Obat</th>
-                <th className="border px-4 py-2">Jumlah</th>
-                {data[0]?.bulan && <th className="border px-4 py-2">Bulan</th>}
+        <table className="w-full border border-gray-300 text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-4 py-2">Obat</th>
+              <th className="border px-4 py-2">Jumlah</th>
+              {data[0]?.bulan && <th className="border px-4 py-2">Bulan</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {paginated.map((item, idx) => (
+              <tr key={idx} className="hover:bg-gray-50">
+                <td className="border px-4 py-2">{item.obat || item.penyakit}</td>
+                <td className="border px-4 py-2">{item.jumlah}</td>
+                {item.bulan && <td className="border px-4 py-2">{item.bulan}</td>}
               </tr>
-            </thead>
-            <tbody>
-              {paginated.map((item, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  <td className="border px-4 py-2">{item.obat || item.penyakit}</td>
-                  <td className="border px-4 py-2">{item.jumlah}</td>
-                  {item.bulan && (
-                    <td className="border px-4 py-2">{item.bulan}</td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
+            ))}
+          </tbody>
+        </table>
+  
         {totalPages > 1 && (
           <div className="flex justify-center mt-4 space-x-2 flex-wrap">
-            {Array.from({ length: totalPages }).map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setPage(idx + 1)}
-                className={`px-3 py-1 rounded ${
-                  page === idx + 1
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {idx + 1}
-              </button>
-            ))}
+            <button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+            >
+              {"<"}
+            </button>
+  
+            {getPaginationItems().map((p, idx) =>
+              p === "..." ? (
+                <span key={idx} className="px-3 py-1 text-gray-500">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={idx}
+                  onClick={() => setPage(p)}
+                  className={`px-3 py-1 rounded ${
+                    page === p
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            )}
+  
+            <button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page === totalPages}
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+            >
+              {">"}
+            </button>
           </div>
         )}
       </div>
     );
   };
+  
 
   const renderChart = (title, data, dataKey, labelKey) => (
     <div className="mb-8">
