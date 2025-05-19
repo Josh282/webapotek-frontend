@@ -68,24 +68,30 @@ const Dashboard = () => {
     return (
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-2">{title}</h2>
-        <table className="w-full border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-4 py-2">Obat</th>
-              <th className="border px-4 py-2">Jumlah</th>
-              {data[0]?.bulan && <th className="border px-4 py-2">Bulan</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {paginated.map((item, idx) => (
-              <tr key={idx} className="hover:bg-gray-50">
-                <td className="border px-4 py-2">{item.obat || item.penyakit}</td>
-                <td className="border px-4 py-2">{item.jumlah}</td>
-                {item.bulan && <td className="border px-4 py-2">{item.bulan}</td>}
+        <div className="overflow-x-auto">
+          <table className="w-full border border-gray-300 text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-2">Obat</th>
+                <th className="border px-4 py-2">Jumlah</th>
+                {data[0]?.bulan && <th className="border px-4 py-2">Bulan</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginated.map((item, idx) => (
+                <tr key={idx} className="hover:bg-gray-50">
+                  <td className="border px-4 py-2">
+                    {item.obat || item.penyakit}
+                  </td>
+                  <td className="border px-4 py-2">{item.jumlah}</td>
+                  {item.bulan && (
+                    <td className="border px-4 py-2">{item.bulan}</td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {totalPages > 1 && (
           <div className="flex justify-center mt-4 space-x-2">
@@ -130,13 +136,13 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
-    setPage(1);
+    setPage(1); // Reset halaman saat tab atau horizon berubah
   }, [horizonTab, tab]);
 
   return (
     <>
       <Navbar />
-      <div className="p-6">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold mb-6">Dashboard Prediksi Obat</h1>
 
         {/* Tab Switcher */}
@@ -164,14 +170,23 @@ const Dashboard = () => {
 
         {tab === "utama" && (
           <>
-            {renderChart("📊 5 Penyakit Terbanyak Bulan Ini", topPenyakit, "jumlah", "penyakit")}
-            {renderChart("📈 Top 15 Forecast", forecast1.slice(0, 15), "jumlah", "obat")}
+            {renderChart(
+              "📊 5 Penyakit Terbanyak Bulan Ini",
+              topPenyakit,
+              "jumlah",
+              "penyakit"
+            )}
+            {renderChart(
+              "📈 Top 15 Forecast",
+              forecast1.slice(0, 15),
+              "jumlah",
+              "obat"
+            )}
             {renderTable("📋 Top 15 Pemakaian Obat", topUsed.slice(0, 15))}
           </>
         )}
 
-        {tab === "pemakaian" &&
-          renderTable("📋 Semua Data Pemakaian", topUsed)}
+        {tab === "pemakaian" && renderTable("📋 Semua Data Pemakaian", topUsed)}
 
         {tab === "forecast" && (
           <>
@@ -192,7 +207,10 @@ const Dashboard = () => {
               ))}
             </div>
 
-            {renderTable(`📊 Forecast ${horizonTab} Bulan`, getForecastByTab())}
+            {renderTable(
+              `📊 Forecast ${horizonTab} Bulan`,
+              getForecastByTab()
+            )}
           </>
         )}
       </div>
