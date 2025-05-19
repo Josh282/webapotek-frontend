@@ -44,7 +44,7 @@ const ManualEntryForm = () => {
 
   return (
     <div className="max-w-4xl mx-auto bg-white p-8 rounded shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
         Manual Data Entry
       </h2>
 
@@ -91,10 +91,10 @@ const ManualEntryForm = () => {
             className="w-full border border-gray-300 px-4 py-2 rounded-md"
           >
             <option value="">Pilih jenis</option>
-            <option value="tablet">Tablet</option>
-            <option value="kapsul">Kapsul</option>
-            <option value="sirup">Sirup</option>
-            {/* Tambahkan sesuai kebutuhan */}
+            <option value="Tablet">Tablet</option>
+            <option value="Kapsul">Kapsul</option>
+            <option value="Injeksi">Injeksi</option>
+            <option value="Sirup">Sirup</option>
           </select>
         </div>
 
@@ -104,6 +104,17 @@ const ManualEntryForm = () => {
             type="text"
             name="penyakit"
             value={form.penyakit}
+            onChange={handleChange}
+            className="w-full border border-gray-300 px-4 py-2 rounded-md"
+          />
+        </div>
+
+        <div>
+          <label className="block mb-1 font-medium">Manufacturer</label>
+          <input
+            type="text"
+            name="pabrik"
+            value={form.pabrik}
             onChange={handleChange}
             className="w-full border border-gray-300 px-4 py-2 rounded-md"
           />
@@ -122,15 +133,19 @@ const ManualEntryForm = () => {
         </div>
       </div>
 
-      <button
-        onClick={handleSubmit}
-        className="mt-6 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-      >
-        Add Record
-      </button>
+      <div className="flex justify-center mt-6">
+        <button
+          onClick={handleSubmit}
+          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+        >
+          Add Record
+        </button>
+      </div>
 
       {message && (
-        <p className="mt-4 text-center text-sm font-medium text-gray-700">{message}</p>
+        <p className="mt-4 text-center text-sm font-medium text-gray-700">
+          {message}
+        </p>
       )}
     </div>
   );
