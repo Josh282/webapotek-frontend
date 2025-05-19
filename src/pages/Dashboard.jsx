@@ -137,7 +137,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     setPage(1); // Reset halaman saat tab atau horizon berubah
-  }, [horizonTab, tab]);
+  }, [horizonTab]);
 
   return (
     <>
