@@ -29,16 +29,16 @@ const Dashboard = () => {
       try {
         const [usedRes, f1, f3, f6, penyakitRes] = await Promise.all([
           api.get("/pemakaian/top15"),
-          api.get("/forecast/top15?horizon=1"),
-          api.get("/forecast/top15?horizon=3"),
-          api.get("/forecast/top15?horizon=6"),
+          api.get("/forecast?horizon=1"),
+          api.get("/forecast?horizon=3"),
+          api.get("/forecast?horizon=6"),
           api.get("/pemakaian/top5-penyakit"),
         ]);
 
         setTopUsed(usedRes.data);
-        setForecast1(f1.data.forecast_top15 || f1.data.forecast);
-        setForecast3(f3.data.forecast_top15 || f3.data.forecast);
-        setForecast6(f6.data.forecast_top15 || f6.data.forecast);
+        setForecast1(f1.data.forecast);
+        setForecast3(f3.data.forecast);
+        setForecast6(f6.data.forecast);
         setTopPenyakit(penyakitRes.data);
       } catch (err) {
         console.error(err);
@@ -114,7 +114,13 @@ const Dashboard = () => {
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={labelKey} />
+          <XAxis
+            dataKey={labelKey}
+            interval={0}
+            angle={-45}
+            textAnchor="end"
+            height={100}
+          />
           <YAxis />
           <Tooltip />
           <Bar dataKey={dataKey} fill="#3182ce" />
@@ -158,14 +164,9 @@ const Dashboard = () => {
 
         {tab === "utama" && (
           <>
-            {renderChart(
-              "📊 5 Penyakit Terbanyak Bulan Ini",
-              topPenyakit,
-              "jumlah",
-              "penyakit"
-            )}
-            {renderChart("📈 Top 15 Forecast", forecast1, "jumlah", "obat")}
-            {renderTable("📋 Top 15 Pemakaian Obat", topUsed)}
+            {renderChart("📊 5 Penyakit Terbanyak Bulan Ini", topPenyakit, "jumlah", "penyakit")}
+            {renderChart("📈 Top 15 Forecast", forecast1.slice(0, 15), "jumlah", "obat")}
+            {renderTable("📋 Top 15 Pemakaian Obat", topUsed.slice(0, 15))}
           </>
         )}
 
@@ -174,6 +175,7 @@ const Dashboard = () => {
 
         {tab === "forecast" && (
           <>
+            {/* Sub-tab Horizon */}
             <div className="flex mb-4 space-x-4">
               {[1, 3, 6].map((bulan) => (
                 <button
