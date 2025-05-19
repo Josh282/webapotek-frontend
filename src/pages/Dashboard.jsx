@@ -49,6 +49,10 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    setPage(1);
+  }, [horizonTab, tab]);
+
   const getForecastByTab = () => {
     if (horizonTab === 1) return forecast1;
     if (horizonTab === 3) return forecast3;
@@ -69,7 +73,7 @@ const Dashboard = () => {
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-2">{title}</h2>
         <div className="overflow-x-auto">
-          <table className="w-full border border-gray-300 text-sm">
+          <table className="min-w-full border border-gray-300 text-sm">
             <thead className="bg-gray-100">
               <tr>
                 <th className="border px-4 py-2">Obat</th>
@@ -80,9 +84,7 @@ const Dashboard = () => {
             <tbody>
               {paginated.map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50">
-                  <td className="border px-4 py-2">
-                    {item.obat || item.penyakit}
-                  </td>
+                  <td className="border px-4 py-2">{item.obat || item.penyakit}</td>
                   <td className="border px-4 py-2">{item.jumlah}</td>
                   {item.bulan && (
                     <td className="border px-4 py-2">{item.bulan}</td>
@@ -94,7 +96,7 @@ const Dashboard = () => {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex justify-center mt-4 space-x-2">
+          <div className="flex justify-center mt-4 space-x-2 flex-wrap">
             {Array.from({ length: totalPages }).map((_, idx) => (
               <button
                 key={idx}
@@ -135,10 +137,6 @@ const Dashboard = () => {
     </div>
   );
 
-  useEffect(() => {
-    setPage(1); // Reset halaman saat tab atau horizon berubah
-  }, [horizonTab]);
-
   return (
     <>
       <Navbar />
@@ -170,23 +168,14 @@ const Dashboard = () => {
 
         {tab === "utama" && (
           <>
-            {renderChart(
-              "📊 5 Penyakit Terbanyak Bulan Ini",
-              topPenyakit,
-              "jumlah",
-              "penyakit"
-            )}
-            {renderChart(
-              "📈 Top 15 Forecast",
-              forecast1.slice(0, 15),
-              "jumlah",
-              "obat"
-            )}
+            {renderChart("📊 5 Penyakit Terbanyak Bulan Ini", topPenyakit, "jumlah", "penyakit")}
+            {renderChart("📈 Top 15 Forecast", forecast1.slice(0, 15), "jumlah", "obat")}
             {renderTable("📋 Top 15 Pemakaian Obat", topUsed.slice(0, 15))}
           </>
         )}
 
-        {tab === "pemakaian" && renderTable("📋 Semua Data Pemakaian", topUsed)}
+        {tab === "pemakaian" &&
+          renderTable("📋 Semua Data Pemakaian", topUsed)}
 
         {tab === "forecast" && (
           <>
@@ -207,10 +196,7 @@ const Dashboard = () => {
               ))}
             </div>
 
-            {renderTable(
-              `📊 Forecast ${horizonTab} Bulan`,
-              getForecastByTab()
-            )}
+            {renderTable(`📊 Forecast ${horizonTab} Bulan`, getForecastByTab())}
           </>
         )}
       </div>
